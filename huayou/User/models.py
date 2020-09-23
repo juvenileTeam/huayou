@@ -23,8 +23,20 @@ class User(models.Model):
     avatar = models.CharField(max_length=256, verbose_name='头像')
     location = models.CharField(max_length=32, choices=LOCATION, verbose_name='常居地')
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nickname": self.nickname,
+            "phonenum": self.phonenum,
+            "birthday": str(self.birthday),
+            "gender": self.gender,
+            "location": self.location,
+            "avatar": self.avatar,
+        }
+
     class Meta:
         db_table = 'user'
+
 #
 #
 # class MakeFriends(models.Model):

@@ -33,156 +33,123 @@ def submit_vcode(request):
     key = f'Vcode-{phonenum}'
     vcode = cache.get(key)
     if vcode and vcode == u_vcode:
-        user = User.objects.filter(phonenum=phonenum)
-        if user.count():
-            user = user[0]
-            if user.gender:
-                gender = 'male'
-            else:
-                gender = 'female'
-            data = {
-                "code": 0,
-                "data": {
-                    "id": int(user.id),
-                    "nickname": user.nickname,
-                    "phonenum": user.phonenum,
-                    "birthday": user.birthday,
-                    "gender": gender,
-                    "location": user.location,
-                    "avatar": user.avatar,
-                }
-            }
-            request.session['uid'] = user.id
-            return JsonResponse(data=data)
-        else:
+        try:
+            user = User.objects.get(phonenum=phonenum)
+        except User.DoesNotExist:
             user = User()
-            user.nickname = phonenum
             user.phonenum = phonenum
+            user.nickname = phonenum
             user.save()
-
-            make_friends_info = MakeFriends()
-            make_friends_info.user_id = user.id
-            make_friends_info.save()
-
-            data = {
-                "code": 0,
-                "data": {
-                    "id": int(user.id),
-                    "nickname": user.nickname,
-                    "phonenum": user.phonenum,
-                    "birthday": user.birthday,
-                    "gender": 'male',
-                    "location": user.location,
-                    "avatar": user.avatar,
-                }
-            }
-            request.session['uid'] = user.id
-            return JsonResponse(data=data)
+        request.session['uid'] = user.id
+        return JsonResponse({
+            'code':0,
+            'data':user.to_dict()
+        })
     else:
-        data = {
-            'code': 1001,
-            'data': None
-        }
-        return JsonResponse(data=data)
+        return JsonResponse({
+            'code':1001,
+            'data':'验证码错误'
+        })
+
 
 #  获取配置信息
-def show_profile(request):
-    user_id = request.session.get('uid')
-    if user_id:
-        make_friends_info = MakeFriends.objects.filter(user_id=user_id)[0]
-        if make_friends_info.vibration:
-            vibration = True
-        else:
-            vibration = False
-        if make_friends_info.only_matched:
-            only_matched = True
-        else:
-            only_matched = False
-        if make_friends_info.auto_play:
-            auto_play = True
-        else:
-            auto_play = False
-        data = {
-            'code': 0,
-            'data': {
-                "dating_gender": make_friends_info.dating_gender,
-                "dating_location": make_friends_info.dating_location,
-                "max_distance": make_friends_info.max_distance,
-                "min_distance": make_friends_info.min_distance,
-                "max_dating_age": make_friends_info.max_dating_age,
-                "min_dating_age": make_friends_info.min_dating_age,
-                "vibration": vibration,
-                "only_matched": only_matched,
-                "auto_play": auto_play
-            }
-        }
-
-        return JsonResponse(data=data)
-    else:
-        data = {
-            'code': 1002,
-            'data': None
-        }
-        return JsonResponse(data=data)
-
-
-#  修改资料
-def update_profile(request):
-    uid = request.session.get('uid')
-    if uid:
-        user = User.objects.get(pk=uid)
-        nickname = request.POST.get('nickname')
-        birthday = request.POST.get('birthday')
-        gender = request.POST.get('gender')
-
-        if gender == "male":
-            gender = True
-        elif gender == 'female':
-            gender = False
-        else:
-            data = {
-                'code': 1003,
-                'data': None
-            }
-            return JsonResponse(data=data)
-
-        location = request.POST.get('location')
-        dating_gender = request.POST.get('dating_gender')
-        dating_location = request.POST.get('dating_location')
-        max_distance = request.POST.get('max_distance')
-        min_distance = request.POST.get('min_distance')
-        max_dating_age = request.POST.get('max_dating_age')
-        min_dating_age = request.POST.get('min_dating_age')
-
-        vibration = request.POST.get('vibration')
-        if vibration == 'true':
-            vibration = True
-        else:
-            vibration = False
-        only_matched = request.POST.get('only_matched')
-        if only_matched == 'true':
-            only_matched = True
-        else:
-            only_matched = False
-
-        auto_play = request.POST.get('auto_play')
-        if auto_play == 'true':
-            auto_play = True
-        else:
-            auto_play = False
-
-        user.nickname = nickname
-        user.birthday = birthday
-        user.gender = gender
-        user.location = location
-        user.makefriends_set.dating_gender = dating_gender
-        user.makefriends_set.dating_location = dating_location
-        # max_distance
-        # min_distance
-        # max_dating_age
-        # min_dating_age
-        # vibration
-        # only_matched
-        # auto_play
-
-    return JsonResponse(data=data)
+# def show_profile(request):
+#     user_id = request.session.get('uid')
+#     if user_id:
+#         make_friends_info = MakeFriends.objects.filter(user_id=user_id)[0]
+#         if make_friends_info.vibration:
+#             vibration = True
+#         else:
+#             vibration = False
+#         if make_friends_info.only_matched:
+#             only_matched = True
+#         else:
+#             only_matched = False
+#         if make_friends_info.auto_play:
+#             auto_play = True
+#         else:
+#             auto_play = False
+#         data = {
+#             'code': 0,
+#             'data': {
+#                 "dating_gender": make_friends_info.dating_gender,
+#                 "dating_location": make_friends_info.dating_location,
+#                 "max_distance": make_friends_info.max_distance,
+#                 "min_distance": make_friends_info.min_distance,
+#                 "max_dating_age": make_friends_info.max_dating_age,
+#                 "min_dating_age": make_friends_info.min_dating_age,
+#                 "vibration": vibration,
+#                 "only_matched": only_matched,
+#                 "auto_play": auto_play
+#             }
+#         }
+#
+#         return JsonResponse(data=data)
+#     else:
+#         data = {
+#             'code': 1002,
+#             'data': None
+#         }
+#         return JsonResponse(data=data)
+#
+#
+# #  修改资料
+# def update_profile(request):
+#     uid = request.session.get('uid')
+#     if uid:
+#         user = User.objects.get(pk=uid)
+#         nickname = request.POST.get('nickname')
+#         birthday = request.POST.get('birthday')
+#         gender = request.POST.get('gender')
+#
+#         if gender == "male":
+#             gender = True
+#         elif gender == 'female':
+#             gender = False
+#         else:
+#             data = {
+#                 'code': 1003,
+#                 'data': None
+#             }
+#             return JsonResponse(data=data)
+#
+#         location = request.POST.get('location')
+#         dating_gender = request.POST.get('dating_gender')
+#         dating_location = request.POST.get('dating_location')
+#         max_distance = request.POST.get('max_distance')
+#         min_distance = request.POST.get('min_distance')
+#         max_dating_age = request.POST.get('max_dating_age')
+#         min_dating_age = request.POST.get('min_dating_age')
+#
+#         vibration = request.POST.get('vibration')
+#         if vibration == 'true':
+#             vibration = True
+#         else:
+#             vibration = False
+#         only_matched = request.POST.get('only_matched')
+#         if only_matched == 'true':
+#             only_matched = True
+#         else:
+#             only_matched = False
+#
+#         auto_play = request.POST.get('auto_play')
+#         if auto_play == 'true':
+#             auto_play = True
+#         else:
+#             auto_play = False
+#
+#         user.nickname = nickname
+#         user.birthday = birthday
+#         user.gender = gender
+#         user.location = location
+#         user.makefriends_set.dating_gender = dating_gender
+#         user.makefriends_set.dating_location = dating_location
+#         # max_distance
+#         # min_distance
+#         # max_dating_age
+#         # min_dating_age
+#         # vibration
+#         # only_matched
+#         # auto_play
+#
+#     return JsonResponse(data=data)
