@@ -3,8 +3,9 @@ from django.utils.deprecation import MiddlewareMixin
 
 
 class AuthMiddleware(MiddlewareMixin):
+    '''登录验证中间件'''
     white_list = [
-        '/api/user/vcode/fetch/'
+        '/api/user/vcode/fetch/',
         '/api/user/vcode/submit/'
     ]
 

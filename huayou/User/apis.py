@@ -1,13 +1,12 @@
 from django.core.cache import cache
 from django.http import JsonResponse
 
-
-# Create your views here.
+from User.forms import UserForm, ProfileForm
 from User.logic import send_code
-from User.models import User
+from User.models import User, Profile
 from django.views.decorators.csrf import csrf_exempt
 
-from libs.sms import send_msg
+
 
 
 def fetch_vcode(request):
@@ -42,114 +41,35 @@ def submit_vcode(request):
             user.save()
         request.session['uid'] = user.id
         return JsonResponse({
-            'code':0,
-            'data':user.to_dict()
+            'code': 0,
+            'data': user.to_dict()
         })
     else:
         return JsonResponse({
-            'code':1001,
-            'data':'验证码错误'
+            'code': 1001,
+            'data': '验证码错误'
         })
 
 
-#  获取配置信息
-# def show_profile(request):
-#     user_id = request.session.get('uid')
-#     if user_id:
-#         make_friends_info = MakeFriends.objects.filter(user_id=user_id)[0]
-#         if make_friends_info.vibration:
-#             vibration = True
-#         else:
-#             vibration = False
-#         if make_friends_info.only_matched:
-#             only_matched = True
-#         else:
-#             only_matched = False
-#         if make_friends_info.auto_play:
-#             auto_play = True
-#         else:
-#             auto_play = False
-#         data = {
-#             'code': 0,
-#             'data': {
-#                 "dating_gender": make_friends_info.dating_gender,
-#                 "dating_location": make_friends_info.dating_location,
-#                 "max_distance": make_friends_info.max_distance,
-#                 "min_distance": make_friends_info.min_distance,
-#                 "max_dating_age": make_friends_info.max_dating_age,
-#                 "min_dating_age": make_friends_info.min_dating_age,
-#                 "vibration": vibration,
-#                 "only_matched": only_matched,
-#                 "auto_play": auto_play
-#             }
-#         }
-#
-#         return JsonResponse(data=data)
-#     else:
-#         data = {
-#             'code': 1002,
-#             'data': None
-#         }
-#         return JsonResponse(data=data)
-#
-#
-# #  修改资料
-# def update_profile(request):
-#     uid = request.session.get('uid')
-#     if uid:
-#         user = User.objects.get(pk=uid)
-#         nickname = request.POST.get('nickname')
-#         birthday = request.POST.get('birthday')
-#         gender = request.POST.get('gender')
-#
-#         if gender == "male":
-#             gender = True
-#         elif gender == 'female':
-#             gender = False
-#         else:
-#             data = {
-#                 'code': 1003,
-#                 'data': None
-#             }
-#             return JsonResponse(data=data)
-#
-#         location = request.POST.get('location')
-#         dating_gender = request.POST.get('dating_gender')
-#         dating_location = request.POST.get('dating_location')
-#         max_distance = request.POST.get('max_distance')
-#         min_distance = request.POST.get('min_distance')
-#         max_dating_age = request.POST.get('max_dating_age')
-#         min_dating_age = request.POST.get('min_dating_age')
-#
-#         vibration = request.POST.get('vibration')
-#         if vibration == 'true':
-#             vibration = True
-#         else:
-#             vibration = False
-#         only_matched = request.POST.get('only_matched')
-#         if only_matched == 'true':
-#             only_matched = True
-#         else:
-#             only_matched = False
-#
-#         auto_play = request.POST.get('auto_play')
-#         if auto_play == 'true':
-#             auto_play = True
-#         else:
-#             auto_play = False
-#
-#         user.nickname = nickname
-#         user.birthday = birthday
-#         user.gender = gender
-#         user.location = location
-#         user.makefriends_set.dating_gender = dating_gender
-#         user.makefriends_set.dating_location = dating_location
-#         # max_distance
-#         # min_distance
-#         # max_dating_age
-#         # min_dating_age
-#         # vibration
-#         # only_matched
-#         # auto_play
-#
-#     return JsonResponse(data=data)
+def show_profile(request):
+    '''获取配置信息'''
+    uid = request.session.get('uid')
+    profile, _ = Profile.objects.get_or_create(id=uid)
+    return JsonResponse({'code': 0, 'data': profile.to_dict()})
+
+
+@csrf_exempt
+def update_profile(request):
+    '''修改个人资料以及交友资料'''
+    user_form = UserForm(request.POST)
+    profile_form = ProfileForm(request.POST)
+    if user_form.is_valid() and profile_form.is_valid():
+        uid = request.session.get('uid')
+        User.objects.filter(id=uid).update(**user_form)
+        User.objects.filter(id=uid).update_or_create(profile_form)
+        return JsonResponse({
+            'code': 0,
+            'data': '修改成功'
+        })
+    else:
+        return JsonResponse({'code': 1003,'data': '用户资料表单数据错误'})
