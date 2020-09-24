@@ -1,12 +1,9 @@
 from django.core.cache import cache
 from django.http import JsonResponse
-
 from User.forms import UserForm, ProfileForm
 from User.logic import send_code
 from User.models import User, Profile
 from django.views.decorators.csrf import csrf_exempt
-
-
 
 
 def fetch_vcode(request):
@@ -65,11 +62,16 @@ def update_profile(request):
     profile_form = ProfileForm(request.POST)
     if user_form.is_valid() and profile_form.is_valid():
         uid = request.session.get('uid')
-        User.objects.filter(id=uid).update(**user_form)
-        User.objects.filter(id=uid).update_or_create(profile_form)
+        User.objects.filter(id=uid).update(**user_form.cleaned_data)
+        Profile.objects.update_or_create(id=uid, defaults=profile_form.cleaned_data)
         return JsonResponse({
             'code': 0,
             'data': '修改成功'
         })
     else:
-        return JsonResponse({'code': 1003,'data': '用户资料表单数据错误'})
+        return JsonResponse({'code': 1003,
+                             'data': {
+                                 'usererr': user_form.errors,
+                                 'profile': profile_form.errors,
+                             }
+                             })
