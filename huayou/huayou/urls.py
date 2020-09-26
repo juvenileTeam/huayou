@@ -16,7 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from User import apis
+from home import views
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/user/', include('User.urls'))
+    path('', views.index),
+    path('admin', admin.site.urls),
+    path('api/user/', include('User.urls')),
+    path('qiniu/token', apis.qn_token),
+    path('qiniu/callback', apis.qn_callback),
 ]

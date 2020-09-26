@@ -30,5 +30,5 @@ def send_code(phonenum):
     if cache.get(key):
         return True
     vcode = make_code()
-    cache.set(key, vcode, 600)
+    cache.set(key, vcode, 60000)
     return send_msg(phonenum, vcode)

@@ -2,3 +2,9 @@ appid = '54728'
 APPKEY = '5473664699497c9be234d615b1f0286b'
 template = 'FL0Fn2'
 api = 'https://api.mysubmail.com/message/xsend.json'
+
+
+DOMIN='qh61eh0uk.hd-bkt.clouddn.com'
+BUCKET = 'dback'
+ACCESS_LEY='UYNX_8zKOZkJAPWOUAev--KLfiJKtisS__wfuIxP'
+SECRE_KEY='tKSagqakwv80DiTbd261klBKgPnMHFyAGG0a14fA'
