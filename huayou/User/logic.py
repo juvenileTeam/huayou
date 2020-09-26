@@ -2,7 +2,8 @@ import random
 import re
 
 from django.core.cache import cache
-
+from libs.cache import rds
+from common import keys
 from libs.sms import send_msg
 
 
@@ -25,10 +26,10 @@ def send_code(phonenum):
     '''给用户发送验证码'''
     if not is_phonenum(phonenum):
         return False
-    key = f'Vcode-{phonenum}'
+    key = keys.VCODE_K + str(f'{phonenum}')
 
-    if cache.get(key):
+    if rds.get(key):
         return True
     vcode = make_code()
-    cache.set(key, vcode, 60000)
+    rds.set(key, vcode, 600)
     return send_msg(phonenum, vcode)
