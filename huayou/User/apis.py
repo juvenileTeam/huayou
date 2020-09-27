@@ -12,10 +12,11 @@ from libs.qn_cloud import gen_token, get_res_url
 def fetch_vcode(request):
     '''提交手机号'''
     phonenum = request.GET.get('phonenum')
-    if send_code(phonenum):
-        return render_json()
-    else:
-        return render_json(data='验证码发送失败', code=errors.VCODE_FAILD, )
+    send_code.delay(phonenum)  # 异步发送验证码
+    # if send_code(phonenum):
+    return render_json()
+    # else:
+    #     return render_json(data='验证码发送失败', code=errors.VCODE_FAILD, )
 
 
 @csrf_exempt

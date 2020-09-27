@@ -1,10 +1,10 @@
 import random
 import re
 
-from django.core.cache import cache
 from libs.cache import rds
 from common import keys
 from libs.sms import send_msg
+from tasks import celery_app
 
 
 def is_phonenum(phonenum):
@@ -22,6 +22,7 @@ def make_code(length=6):
     return vcode
 
 
+@celery_app.task
 def send_code(phonenum):
     '''给用户发送验证码'''
     if not is_phonenum(phonenum):
