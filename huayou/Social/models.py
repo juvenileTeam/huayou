@@ -1,4 +1,6 @@
-from django.db import models
+from django.db import models, IntegrityError
+
+from common import errors
 
 
 class Swiped(models.Model):
@@ -15,6 +17,14 @@ class Swiped(models.Model):
 
     class Meta:
         unique_together = ['uid', 'sid']
+
+    @classmethod
+    def swiped(cls, uid, sid, stype):
+        try:
+            cls.objects.create(uid=uid, sid=sid, stype=stype)
+        except IntegrityError:
+            # 抛出滑动异常
+            raise errors.RepeatSwipeErr
 
     @classmethod
     def is_liked(cls, uid, sid):

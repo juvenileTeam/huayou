@@ -37,7 +37,8 @@ def submit_vcode(request):
         request.session['uid'] = user.id
         return render_json(user.to_dict())
     else:
-        return render_json(data='验证码错误', code=errors.VCODE_ERR)
+        # return render_json(data='验证码错误', code=errors.VCODE_ERR)
+        raise errors.VcodeErr('验证码错误')
 
 
 def show_profile(request):
@@ -58,10 +59,14 @@ def update_profile(request):
         Profile.objects.update_or_create(id=uid, defaults=profile_form.cleaned_data)
         return render_json()
     else:
-        return render_json(data={'usererr': user_form.errors,
-                                 'profile': profile_form.errors},
-                           code=errors.PROGILE_ERR,
-                           )
+        err = {}
+        err.update(user_form.errors)
+        err.update(profile_form.errors)
+        # return render_json(data={'usererr': user_form.errors,
+        #                          'profile': profile_form.errors},
+        #                    code=errors.PROGILE_ERR,
+        #                    )
+        raise errors.ProfileErr(data=err)
 
 
 def qn_token(request):

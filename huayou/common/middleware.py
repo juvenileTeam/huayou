@@ -21,6 +21,14 @@ class AuthMiddleware(MiddlewareMixin):
         # 获取并检查 session 中的 uid
         uid = request.session.get('uid')
         if not uid:
-            return render_json(data='用户未登录', code=errors.LOGIN_REQUIRED, )
+            return render_json(data='用户未登录', code=errors.LoginRequired.code)
         else:
             request.uid = uid
+
+
+class LogicErrMiddleware(MiddlewareMixin):
+    '''逻辑异常处理中间件'''
+
+    def process_exception(self, request, exception):
+        if isinstance(exception, errors.LogicErr):
+            return render_json(exception.data, exception.code)
