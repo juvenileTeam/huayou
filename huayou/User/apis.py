@@ -35,7 +35,7 @@ def submit_vcode(request):
             user.nickname = phonenum
             user.save()
         request.session['uid'] = user.id
-        return render_json()
+        return render_json(user.to_dict())
     else:
         return render_json(data='验证码错误', code=errors.VCODE_ERR)
 

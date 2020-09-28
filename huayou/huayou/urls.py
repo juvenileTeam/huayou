@@ -22,7 +22,13 @@ from home import views
 urlpatterns = [
     path('', views.index),
     path('admin', admin.site.urls),
+
+    # user模块
     path('api/user/', include('User.urls')),
     path('qiniu/token', apis.qn_token),
     path('qiniu/callback', apis.qn_callback),
+
+    # social 模块
+    path('api/social/', include('Social.urls')),
+
 ]
