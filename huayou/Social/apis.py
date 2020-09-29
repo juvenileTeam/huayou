@@ -1,6 +1,8 @@
 from django.views.decorators.csrf import csrf_exempt
 
 from Social import logics
+from Social.models import Friend
+from User.models import User
 from libs.http import render_json
 
 
@@ -35,16 +37,23 @@ def dislike(request):
     return render_json()
 
 
+@csrf_exempt
 def rewind(request):
     '''反悔'''
+    logics.rewind_last_swiped(request.uid)
     return render_json()
 
 
 def show_fans(request):
     '''查看喜欢我的人'''
-    return render_json()
+    fans = logics.find__my_fans(request.uid)
+    fans = [fan.to_dict() for fan in fans]
+    return render_json(fans)
 
 
 def show_friends(request):
     '''查看我的好友'''
-    return render_json()
+    friend_id_list = Friend.find_ids(request.uid)
+    friends = User.objects.filter(id__in=friend_id_list)
+    friends_list = [friend.to_dict() for friend in friends]
+    return render_json(friends_list)

@@ -21,3 +21,7 @@ QN_ACCESS_LEY = 'UYNX_8zKOZkJAPWOUAev--KLfiJKtisS__wfuIxP'
 QN_SECRET_KEY = 'tKSagqakwv80DiTbd261klBKgPnMHFyAGG0a14fA'
 QN_CALLBACK_URL = 'http://49.235.252.5/qiniu/callback'
 QN_CALLBACK_DOMAIN = '49.235.252.5'
+
+#  反悔功能相关配置
+REWIND_TIMES = 3  # 当日最大反悔次数
+REWIND_TIMEOUT = 5 * 60  # 反悔超时时间 秒

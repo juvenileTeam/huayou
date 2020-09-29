@@ -1,8 +1,11 @@
 import datetime
 
+from django.db.transaction import atomic
+
 from Social.models import Swiped, Friend
 from User.models import Profile, User
-from common import keys
+from common import keys, errors
+from huayou import config
 from libs.cache import rds
 
 
@@ -44,6 +47,7 @@ def rcmd_from_db(uid, num=20):
     return users
 
 
+@atomic
 def like_someone(uid, sid):
     '''喜欢某人(右滑)'''
     # 添加滑动记录
@@ -62,6 +66,7 @@ def like_someone(uid, sid):
         return False
 
 
+@atomic
 def superlike_someone(uid, sid):
     '''超级喜欢某人(上滑)'''
     # 添加滑动记录
@@ -91,3 +96,50 @@ def dislike_someone(uid, sid):
 
     # 强制删除优先推荐队列中的 sid
     rds.lrem(keys.FIRST_RCMD_Q + str(f'{uid}'), count=0, value=sid)
+
+
+def rewind_last_swiped(uid):
+    '''反悔上一次滑动 (每天允许反悔参数)'''
+    now = datetime.datetime.now()
+
+    # 检查今天是否已经反悔 3 次
+    rewind_key = keys.REWIND_TIMES_K + str(f'{now.date()}' + '-' + str(f'{uid}'))
+    rewind_times = rds.get(rewind_key, 0)
+    if rewind_times >= config.REWIND_TIMES:
+        raise errors.RewindLimit
+
+    # 找到最后一次滑动
+    last_swipe = Swiped.objects.filter(uid=uid).latest('stime')
+
+    # 检查最后一次滑动是否在 5 分钟内
+    time_past = (now - last_swipe.stime).total_seconds()
+    if time_past >= config.REWIND_TIMEOUT:
+        raise errors.RewindTimeout
+
+    with atomic():  # 将多次数据修改在事务中执行
+        # 如果之前是好友，删除好友关系
+        if last_swipe.stype in ['like', 'superlike']:
+            Friend.breakoff(uid1=uid, uid2=last_swipe.sid)
+
+            # 如果是超级喜欢，删除对方优先队列里面的数据
+            if last_swipe.stype == 'superlike':
+                rds.lrem(keys.FIRST_RCMD_Q + str(f'{last_swipe}'), 0, uid)
+
+        # 删除最后一次滑动
+        last_swipe.delete()
+
+        # 今日反悔次数加一
+        rds.set(rewind_key, rewind_times + 1, 86460)  # 设置缓存过期时间 一天零一分
+
+
+def find__my_fans(uid):
+    '''查找自己的粉丝'''
+    sid_list = Swiped.objects.filter(uid=uid).values_list('sid', flat=True)  # 自己已经滑过的用户的id -> sid
+
+    fans_id_list = Swiped.objects.filter(sid=uid, stype__in=['like', 'superlike']) \
+                                 .exclude(uid__in=sid_list) \
+                                 .values_list('uid', flat=True)
+    users = User.objects.filter(id__in=fans_id_list)
+    return users
+
+
