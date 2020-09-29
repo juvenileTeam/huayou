@@ -23,6 +23,10 @@ class User(models.Model):
     avatar = models.CharField(max_length=256, verbose_name='头像')
     location = models.CharField(max_length=32, choices=LOCATION, default='上海', verbose_name='常居地')
 
+    vip_id = models.IntegerField(default=1, verbose_name='用户购买的VIP的ID')
+    vip_expire = models.DateTimeField(default='3000-12-31', verbose_name='会员过期时间')
+
+
     @property
     def profile(self):
         if not hasattr(self, '_profile'):

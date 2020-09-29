@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'User',
     'Social',
+    'Vip'
 ]
 
 MIDDLEWARE = [
