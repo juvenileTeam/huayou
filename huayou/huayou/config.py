@@ -14,6 +14,9 @@ SWIPE_SCORE = {
     'superlike': 7
 }
 
+# 榜单配置
+RANK_NUM = 50
+
 #  塞迪云通信设置
 SD_APPID = '54728'
 SD_APPKEY = '5473664699497c9be234d615b1f0286b'

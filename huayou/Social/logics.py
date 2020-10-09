@@ -150,9 +150,29 @@ def find__my_fans(uid):
     sid_list = Swiped.objects.filter(uid=uid).values_list('sid', flat=True)  # 自己已经滑过的用户的id -> sid
 
     fans_id_list = Swiped.objects.filter(sid=uid, stype__in=['like', 'superlike']) \
-                                 .exclude(uid__in=sid_list) \
-                                 .values_list('uid', flat=True)
+        .exclude(uid__in=sid_list) \
+        .values_list('uid', flat=True)
     users = User.objects.filter(id__in=fans_id_list)
     return users
 
 
+def get_top_n(RANK_NUM):
+    '''获取排行榜前 N 的用户数据'''
+    origin_rank = rds.zrevrange(keys.HOT_RANK, 0, RANK_NUM - 1, withscores=True)
+    # 将原始数据中的类型强转为int
+    cleaned_rank = [[int(uid), int(score)] for uid, score in origin_rank]
+    # 获取前 N 的uid
+    uid_list = [uid for uid, _ in cleaned_rank]
+    # 取出前 N 的用户
+    users = User.objects.filter(id__in=uid_list)
+    users = sorted(users, key=lambda user: uid_list.index(user.id))
+    rank_data = []
+    for index, (_, score) in enumerate(cleaned_rank):
+        rank = index + 1
+        user = users[index]
+        user_data = user.to_dict()
+        user_data['rank'] = rank
+        user_data['score'] = score
+        rank_data.append(user_data)
+
+    return rank_data

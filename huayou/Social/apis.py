@@ -4,6 +4,7 @@ from Social import logics
 from Social.models import Friend
 from User.models import User
 from Vip.logics import perm_required
+from huayou import config
 from libs.http import render_json
 
 
@@ -61,3 +62,8 @@ def show_friends(request):
     friends = User.objects.filter(id__in=friend_id_list)
     friends_list = [friend.to_dict() for friend in friends]
     return render_json(friends_list)
+
+
+def hot_rank(request):
+    rank_data = logics.get_top_n(config.RANK_NUM)
+    return render_json(rank_data)

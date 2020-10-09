@@ -45,6 +45,8 @@ def save(self, force_insert=False, force_update=False, using=None,
     rds.set(key, self)
 
 
+# def to_dict(self,exc)
+
 def path_orm():
     '''通过Monkey Patch 的方式为 ORM 增加缓存处理'''
     query.QuerySet._get = query.QuerySet.get
@@ -52,3 +54,5 @@ def path_orm():
 
     models.Model._save = models.Model.save
     models.Model.save = save
+
+    # models.Model.to_dict = to_dict

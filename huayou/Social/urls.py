@@ -10,4 +10,5 @@ urlpatterns = [
     path('rewind', apis.rewind),
     path('fans', apis.show_fans),
     path('friends', apis.show_friends),
+    path('rank', apis.hot_rank),
 ]
