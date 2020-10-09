@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from Social import logics
 from Social.models import Friend
 from User.models import User
+from Vip.logics import perm_required
 from libs.http import render_json
 
 
@@ -13,15 +14,16 @@ def rcmd_users(request):
     return render_json(user_data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def like(request):
     '''喜欢(右滑)'''
     sid = request.POST.get('sid')
     is_matched = logics.like_someone(request.uid, sid)
-    return render_json({'is_matched':is_matched})
+    return render_json({'is_matched': is_matched})
 
 
-@csrf_exempt
+@perm_required('superlike')
+# @csrf_exempt
 def superlike(request):
     '''超级喜欢(上滑)'''
     sid = request.POST.get('sid')
@@ -29,7 +31,7 @@ def superlike(request):
     return render_json({'is_matched': is_matched})
 
 
-@csrf_exempt
+# @csrf_exempt
 def dislike(request):
     '''不喜欢(左滑)'''
     sid = request.POST.get('sid')
@@ -37,13 +39,15 @@ def dislike(request):
     return render_json()
 
 
-@csrf_exempt
+@perm_required('rewind')
+# @csrf_exempt
 def rewind(request):
     '''反悔'''
     logics.rewind_last_swiped(request.uid)
     return render_json()
 
 
+@perm_required('show_fans')
 def show_fans(request):
     '''查看喜欢我的人'''
     fans = logics.find__my_fans(request.uid)

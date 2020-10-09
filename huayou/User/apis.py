@@ -1,3 +1,5 @@
+import logging
+
 from User.forms import UserForm, ProfileForm
 from User.logic import send_code
 from User.models import User, Profile
@@ -8,6 +10,7 @@ from libs.cache import rds
 from libs.http import render_json
 from libs.qn_cloud import gen_token, get_res_url
 
+info_log = logging.getLogger('inf')
 
 def fetch_vcode(request):
     '''提交手机号'''
@@ -29,11 +32,13 @@ def submit_vcode(request):
     if vcode and vcode == u_vcode:
         try:
             user = User.objects.get(phonenum=phonenum)
+            info_log.info(f'User login:{user.id}')
         except User.DoesNotExist:
             user = User()
             user.phonenum = phonenum
             user.nickname = phonenum
             user.save()
+            info_log.info(f'User register:{user.phonenum}')
         request.session['uid'] = user.id
         return render_json(user.to_dict())
     else:

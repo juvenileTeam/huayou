@@ -7,6 +7,13 @@ REDIS = {
     'db': 2
 }
 
+# 滑动积分
+SWIPE_SCORE = {
+    'like': 5,
+    'dislike': -5,
+    'superlike': 7
+}
+
 #  塞迪云通信设置
 SD_APPID = '54728'
 SD_APPKEY = '5473664699497c9be234d615b1f0286b'

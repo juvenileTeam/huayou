@@ -56,6 +56,9 @@ def like_someone(uid, sid):
     # 强制删除优先推荐队列中的 sid
     rds.lrem(keys.FIRST_RCMD_Q + str(f'{uid}'), count=0, value=sid)
 
+    # 增加对方的滑动积分
+    rds.zincrby(keys.HOT_RANK, config.SWIPE_SCORE['like'], sid)
+
     # 检查对方是否喜欢过自己
     is_liked = Swiped.objects.filter(uid=sid, sid=uid, stype__in=['like', 'superlike']).exists()
     if is_liked:
@@ -74,6 +77,9 @@ def superlike_someone(uid, sid):
 
     # 强制删除优先推荐队列中的 sid
     rds.lrem(keys.FIRST_RCMD_Q + str(f'{uid}'), count=0, value=sid)
+
+    # 增加对方的滑动积分
+    rds.zincrby(keys.HOT_RANK, config.SWIPE_SCORE['superlike'], sid)
 
     # 检查对方是否喜欢过自己
     is_liked = Swiped.is_liked(sid, uid)
@@ -96,6 +102,9 @@ def dislike_someone(uid, sid):
 
     # 强制删除优先推荐队列中的 sid
     rds.lrem(keys.FIRST_RCMD_Q + str(f'{uid}'), count=0, value=sid)
+
+    # 增加对方的滑动积分
+    rds.zincrby(keys.HOT_RANK, config.SWIPE_SCORE['dislike'], sid)
 
 
 def rewind_last_swiped(uid):
@@ -124,6 +133,10 @@ def rewind_last_swiped(uid):
             # 如果是超级喜欢，删除对方优先队列里面的数据
             if last_swipe.stype == 'superlike':
                 rds.lrem(keys.FIRST_RCMD_Q + str(f'{last_swipe}'), 0, uid)
+
+        # 增加对方的滑动积分
+        score = config.SWIPE_SCORE[last_swipe.stype]
+        rds.zincrby(keys.HOT_RANK, -score, last_swipe.sid)
 
         # 删除最后一次滑动
         last_swipe.delete()
