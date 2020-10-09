@@ -11,7 +11,7 @@ from libs.http import render_json
 def rcmd_users(request):
     '''获取推荐用户'''
     users = logics.rcmd(request.uid)
-    user_data = [user.to_dict() for user in users]
+    user_data = [user.to_dict(exclude=['phonenum']) for user in users]
     return render_json(user_data)
 
 

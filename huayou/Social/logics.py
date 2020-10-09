@@ -170,7 +170,9 @@ def get_top_n(RANK_NUM):
     for index, (_, score) in enumerate(cleaned_rank):
         rank = index + 1
         user = users[index]
-        user_data = user.to_dict()
+        user_data = user.to_dict(exclude=['phonenum', 'birthday', 'location',
+                                          'vip_id', 'vip_expire',
+                                          ])
         user_data['rank'] = rank
         user_data['score'] = score
         rank_data.append(user_data)

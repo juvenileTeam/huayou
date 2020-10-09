@@ -1,3 +1,5 @@
+import datetime
+
 from django.db.models import query
 from django.db import models
 
@@ -27,6 +29,7 @@ def get(self, *args, **kwargs):
     rds.set(key, model_obj)
     return model_obj
 
+
 def save(self, force_insert=False, force_update=False, using=None,
          update_fields=None):
     """
@@ -45,7 +48,21 @@ def save(self, force_insert=False, force_update=False, using=None,
     rds.set(key, self)
 
 
-# def to_dict(self,exc)
+def to_dict(self, exclude=()):
+    '''将用户属性转换成一个字典'''
+    # 找到对象身上所有的字段名称
+    attr_dict = {}
+    for field in self._meta.fields:
+        if field.attname in exclude:
+            continue
+        # 找到字段名对应的值
+        value = getattr(self, field.attname)
+        if isinstance(value, (datetime.date, datetime.datetime)):
+            value = str(value)
+        # 组装字典（排除 exclude 中的字段）
+        attr_dict[field.attname] = value
+    return attr_dict
+
 
 def path_orm():
     '''通过Monkey Patch 的方式为 ORM 增加缓存处理'''
@@ -54,5 +71,4 @@ def path_orm():
 
     models.Model._save = models.Model.save
     models.Model.save = save
-
-    # models.Model.to_dict = to_dict
+    models.Model.to_dict = to_dict
